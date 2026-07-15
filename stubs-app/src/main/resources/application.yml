@@ -6,6 +6,12 @@ spring:
   application:
     name: product-verification-stubs
 
+stub:
+  registry:
+    default-delay-ms: ${REGISTRY_STUB_DEFAULT_DELAY_MS:50}
+    slow-delay-ms: ${REGISTRY_STUB_SLOW_DELAY_MS:1000}
+    max-delay-ms: ${REGISTRY_STUB_MAX_DELAY_MS:5000}
+
 management:
   endpoints:
     web:
