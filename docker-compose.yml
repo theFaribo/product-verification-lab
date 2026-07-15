@@ -1,0 +1,32 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: product-verification-postgres
+
+    environment:
+      POSTGRES_DB: product_verification
+      POSTGRES_USER: product_app
+      POSTGRES_PASSWORD: product_password
+      TZ: UTC
+
+    ports:
+      - "5433:5432"
+
+    volumes:
+      - product-verification-postgres-data:/var/lib/postgresql/data
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U product_app -d product_verification"
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+
+    restart: unless-stopped
+
+volumes:
+  product-verification-postgres-data:
