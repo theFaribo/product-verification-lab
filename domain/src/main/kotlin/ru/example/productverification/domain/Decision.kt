@@ -1,4 +1,4 @@
-package kotlin.ru.example.productverification.domain
+package ru.example.productverification.domain
 
 enum class Decision {
     VALID,

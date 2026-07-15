@@ -1,4 +1,4 @@
-package kotlin.ru.example.productverification.mvc
+package ru.example.productverification.mvc
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
