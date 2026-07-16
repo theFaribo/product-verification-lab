@@ -22,17 +22,12 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
 
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+    implementation("tools.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
-
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
 
-    /*
-     * Flyway работает через JDBC даже в R2DBC-приложении.
-     * JDBC используется только при старте для миграции схемы,
-     * а не в request path.
-     */
-    implementation("org.flywaydb:flyway-core")
+    // Flyway remains JDBC-based and runs only during application startup.
+    implementation("org.springframework.boot:spring-boot-starter-flyway")
 
     runtimeOnly(project(":db-migrations"))
 
@@ -44,10 +39,10 @@ dependencies {
 
     runtimeOnly("io.micrometer:micrometer-registry-prometheus")
 
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-webflux-test")
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
-    testImplementation("org.testcontainers:junit-jupiter")
-    testImplementation("org.testcontainers:postgresql")
+    testImplementation("org.testcontainers:testcontainers-junit-jupiter")
+    testImplementation("org.testcontainers:testcontainers-postgresql")
     testImplementation("io.projectreactor:reactor-test")
 
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")

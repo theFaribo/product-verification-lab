@@ -33,6 +33,13 @@ spring:
     default-property-inclusion: non_null
     time-zone: UTC
 
+clients:
+  registry:
+    base-url: ${REGISTRY_BASE_URL:http://localhost:8090}
+    scenario: ${REGISTRY_SCENARIO:SUCCESS}
+    connect-timeout: ${REGISTRY_CONNECT_TIMEOUT:300ms}
+    read-timeout: ${REGISTRY_READ_TIMEOUT:500ms}
+
 management:
   endpoints:
     web:

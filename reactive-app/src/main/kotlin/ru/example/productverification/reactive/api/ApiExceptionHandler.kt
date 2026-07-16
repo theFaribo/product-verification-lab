@@ -1,15 +1,16 @@
-package ru.example.productverification.mvc.api
+package ru.example.productverification.reactive.api
 
-import jakarta.servlet.http.HttpServletRequest
+import jakarta.validation.ConstraintViolationException
 import java.net.URI
 import org.springframework.http.HttpStatus
 import org.springframework.http.ProblemDetail
-import org.springframework.http.converter.HttpMessageNotReadableException
-import org.springframework.web.bind.MethodArgumentNotValidException
+import org.springframework.http.server.reactive.ServerHttpRequest
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
-import ru.example.productverification.mvc.application.IdempotencyConflictException
-import ru.example.productverification.mvc.application.ProductCheckNotFoundException
+import org.springframework.web.bind.support.WebExchangeBindException
+import org.springframework.web.server.ServerWebInputException
+import ru.example.productverification.reactive.application.IdempotencyConflictException
+import ru.example.productverification.reactive.application.ProductCheckNotFoundException
 
 @RestControllerAdvice
 class ApiExceptionHandler {
@@ -17,7 +18,7 @@ class ApiExceptionHandler {
     @ExceptionHandler(ProductCheckNotFoundException::class)
     fun handleNotFound(
         exception: ProductCheckNotFoundException,
-        request: HttpServletRequest,
+        request: ServerHttpRequest,
     ): ProblemDetail =
         problem(
             status = HttpStatus.NOT_FOUND,
@@ -30,7 +31,7 @@ class ApiExceptionHandler {
     @ExceptionHandler(IdempotencyConflictException::class)
     fun handleIdempotencyConflict(
         exception: IdempotencyConflictException,
-        request: HttpServletRequest,
+        request: ServerHttpRequest,
     ): ProblemDetail =
         problem(
             status = HttpStatus.CONFLICT,
@@ -40,10 +41,10 @@ class ApiExceptionHandler {
             request = request,
         )
 
-    @ExceptionHandler(MethodArgumentNotValidException::class)
+    @ExceptionHandler(WebExchangeBindException::class)
     fun handleValidation(
-        exception: MethodArgumentNotValidException,
-        request: HttpServletRequest,
+        exception: WebExchangeBindException,
+        request: ServerHttpRequest,
     ): ProblemDetail {
         val detail = problem(
             status = HttpStatus.BAD_REQUEST,
@@ -64,10 +65,34 @@ class ApiExceptionHandler {
         return detail
     }
 
-    @ExceptionHandler(HttpMessageNotReadableException::class)
+    @ExceptionHandler(ConstraintViolationException::class)
+    fun handleConstraintViolation(
+        exception: ConstraintViolationException,
+        request: ServerHttpRequest,
+    ): ProblemDetail {
+        val detail = problem(
+            status = HttpStatus.BAD_REQUEST,
+            title = "Request validation failed",
+            detail = "One or more request parameters are invalid",
+            type = "/problems/request-validation",
+            request = request,
+        )
+        detail.setProperty(
+            "violations",
+            exception.constraintViolations.map { violation ->
+                mapOf(
+                    "field" to violation.propertyPath.toString(),
+                    "message" to violation.message,
+                )
+            },
+        )
+        return detail
+    }
+
+    @ExceptionHandler(ServerWebInputException::class)
     fun handleUnreadableBody(
-        exception: HttpMessageNotReadableException,
-        request: HttpServletRequest,
+        exception: ServerWebInputException,
+        request: ServerHttpRequest,
     ): ProblemDetail =
         problem(
             status = HttpStatus.BAD_REQUEST,
@@ -82,11 +107,11 @@ class ApiExceptionHandler {
         title: String,
         detail: String,
         type: String,
-        request: HttpServletRequest,
+        request: ServerHttpRequest,
     ): ProblemDetail =
         ProblemDetail.forStatusAndDetail(status, detail).apply {
             this.title = title
             this.type = URI.create(type)
-            this.instance = URI.create(request.requestURI)
+            this.instance = URI.create(request.path.value())
         }
 }
